@@ -3,7 +3,7 @@ import { User as UserIcon, Mail, Phone, Lock, UserCheck, ArrowLeft, Send } from 
 import { User as UserType } from '../../types';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://my-travel-app-api.onrender.com/api/auth';
 
 interface LoginFormProps {
     onLogin: (user: UserType) => void;

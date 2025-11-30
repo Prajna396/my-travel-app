@@ -3,7 +3,7 @@ import axios from 'axios';
 import { User, Driver } from '../types'; // Assuming User and Driver types are here
 import { CheckCircle, XCircle, FileText, User as UserIcon } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/api/data';
+const API_URL = 'https://my-travel-app-api.onrender.com/api/data';
 const BACKEND_BASE_URL = 'http://localhost:5000'; 
 
 interface DriverReviewState {

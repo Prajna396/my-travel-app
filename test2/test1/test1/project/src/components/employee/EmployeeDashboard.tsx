@@ -3,7 +3,7 @@ import { TrendingUp, MapPin, Star, Calendar, DollarSign, Users, Eye, CheckCircle
 import { Driver, Guide, Booking } from '../../types';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://my-travel-app-api.onrender.com/api';
 
 interface EmployeeDashboardProps {
     employee: Driver | Guide;

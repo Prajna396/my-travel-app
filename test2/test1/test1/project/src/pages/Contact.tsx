@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send, Users, Headphones } from 'lucide-react';
 import axios from 'axios'; 
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://my-travel-app-api.onrender.com/api';
 
 export default function Contact() {
   const [formData, setFormData] = useState({

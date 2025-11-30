@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Users, MapPin, ArrowRight, Star, Phone, History, CreditCard } from 'lucide-react';
 import { BookingFormData, Driver, Guide, TouristSpot } from '../../types';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://my-travel-app-api.onrender.com/api';
 
 interface TripBookingProps {
     userEmail: string;

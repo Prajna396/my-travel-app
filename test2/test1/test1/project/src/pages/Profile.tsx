@@ -3,7 +3,7 @@ import { User as UserIcon, Mail, Phone, Edit, Car, Save, FileText, CheckCircle, 
 import { User, Driver, Guide } from '../types';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/data/profile';
+const API_URL = 'https://my-travel-app-api.onrender.com/api/data/profile';
 const BACKEND_BASE_URL = 'http://localhost:5000';
 
 interface ProfileProps {

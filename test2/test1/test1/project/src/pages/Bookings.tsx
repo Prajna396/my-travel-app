@@ -3,7 +3,7 @@ import { Calendar, Users, CreditCard, Clock, CheckCircle, AlertCircle, Eye, MapP
 import { Booking, User } from '../types'; 
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://my-travel-app-api.onrender.com/api';
 
 interface BookingsProps {
     user: User; 

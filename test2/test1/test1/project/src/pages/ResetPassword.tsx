@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://my-travel-app-api.onrender.com/api/auth';
 
 // Helper to parse query parameters from the URL fragment (e.g., #/reset-password?token=...&email=...)
 const getQueryParams = () => {
