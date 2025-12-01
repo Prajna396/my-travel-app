@@ -5,36 +5,31 @@ dotenv.config();
 
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
-// --- ROBUST TRANSPORTER CONFIGURATION ---
+// --- BREVO (SENDINBLUE) CONFIGURATION ---
 const transporter = nodemailer.createTransport({
-    // Use googlemail.com instead of gmail.com (often bypasses network blocks)
-    host: 'smtp.googlemail.com', 
+    host: 'smtp-relay.brevo.com', // Brevo's SMTP server
     port: 587,
-    secure: false, // Must be false for port 587
+    secure: false, // False for port 587 (it uses STARTTLS)
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER, // Your Brevo Login Email
+        pass: process.env.EMAIL_PASS, // Your Brevo SMTP Key
     },
-    // CRITICAL SETTINGS FOR CLOUD HOSTING:
-    family: 4,              // Force IPv4
-    logger: true,           // Log transaction details to console for debugging
-    debug: true,            // Include SMTP traffic in logs
-    connectionTimeout: 10000, // Fail fast (10s) instead of waiting 2 mins
-    tls: {
-        rejectUnauthorized: false // Allow self-signed certs if necessary
-    }
+    // Reliability settings
+    family: 4, 
+    logger: true,
+    debug: true, 
 });
 
 // Verify connection on startup
 transporter.verify((error, success) => {
     if (error) {
-        console.error("❌ EMAIL CONNECTION FAILED:", error);
+        console.error("❌ Email Service Error:", error);
     } else {
-        console.log("✅ Email Server is Ready (Connected to smtp.googlemail.com)");
+        console.log("✅ Email Service is Ready (Connected to Brevo)");
     }
 });
 
-// Helper function
+// Helper function to format tourist spots
 const createSpotsListHtml = (spotNames) => {
     if (!spotNames || spotNames.length === 0) return '';
     const listItems = spotNames.map(name => `<li>${name}</li>`).join('');
@@ -51,11 +46,11 @@ const createSpotsListHtml = (spotNames) => {
 // --- EMAILS ---
 
 export const sendBookingConfirmation = async (user, bookingDetails) => {
-    console.log(`Attempting to send booking email to ${user.email}...`);
+    console.log(`Sending booking email to ${user.email}...`);
     try {
         const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
         const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`,
+            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`, // Must match verified sender in Brevo
             to: user.email,
             subject: 'Your Azure Journeys Trip is Confirmed!',
             html: `
@@ -70,7 +65,7 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
             `,
         };
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Booking email sent successfully to ${user.email}`);
+        console.log(`✅ Booking email sent to ${user.email}`);
     } catch (error) {
         console.error(`❌ Failed to send booking email:`, error.message);
     }
@@ -96,7 +91,7 @@ export const sendDriverAssignment = async (driver, bookingDetails) => {
             `,
         };
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Driver email sent to ${driver.email}`);
+        console.log(`✅ Driver email sent`);
     } catch (error) {
         console.error("❌ Failed to send driver email:", error.message);
     }
@@ -121,14 +116,14 @@ export const sendGuideAssignment = async (guide, bookingDetails) => {
             `,
         };
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Guide email sent to ${guide.email}`);
+        console.log(`✅ Guide email sent`);
     } catch (error) {
         console.error("❌ Failed to send guide email:", error.message);
     }
 };
 
 export const sendRegistrationEmail = async (user) => {
-    console.log(`Attempting to send registration email to ${user.email}...`);
+    console.log(`Sending registration email to ${user.email}...`);
     try {
         const mailOptions = {
             from: `"Azure Journeys" <${process.env.EMAIL_USER}>`,
@@ -150,7 +145,8 @@ export const sendRegistrationEmail = async (user) => {
 export const sendContactMessage = async (formData) => {
     try {
         const mailOptions = {
-            from: formData.email, 
+            from: `"Contact Form" <${process.env.EMAIL_USER}>`, // Must come from your verified email
+            replyTo: formData.email, // Replies go to the customer
             to: process.env.EMAIL_USER,
             subject: `[Contact Form] ${formData.subject || 'General'}`,
             html: `
@@ -161,7 +157,7 @@ export const sendContactMessage = async (formData) => {
         await transporter.sendMail(mailOptions);
     } catch (error) {
         console.error("❌ Contact form email failed:", error.message);
-        throw error; 
+        throw error;
     }
 };
 
@@ -178,7 +174,7 @@ export const sendPasswordResetLink = async (user, token) => {
             `,
         };
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Password reset link sent to ${user.email}`);
+        console.log(`✅ Password reset link sent`);
     } catch (error) {
         console.error(`❌ Failed to send reset link:`, error.message);
     }
