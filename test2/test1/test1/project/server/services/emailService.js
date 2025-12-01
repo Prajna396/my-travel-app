@@ -10,12 +10,22 @@ dotenv.config();
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // This should work for Gmail/Google Apps
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true, // This should work for Gmail/Google Apps
     auth: {
         // These are read from the Render Environment Variables
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS, // CRITICAL: Must be the App Password
     },
+    family:4,
+});
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("❌ Email Service Error:", error);
+    } else {
+        console.log("✅ Server is ready to take our messages");
+    }
 });
 
 // Helper function to format the spot names into an HTML list
