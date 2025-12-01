@@ -4,7 +4,7 @@ import { User, Driver } from '../types'; // Assuming User and Driver types are h
 import { CheckCircle, XCircle, FileText, User as UserIcon } from 'lucide-react';
 
 const API_URL = 'https://my-travel-app-api.onrender.com/api/data';
-const BACKEND_BASE_URL = 'http://localhost:5000'; 
+const BACKEND_BASE_URL = 'https://my-travel-app-api.onrender.com'; 
 
 interface DriverReviewState {
     drivers: Driver[];
