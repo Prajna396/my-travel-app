@@ -3,21 +3,31 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// --- GMAIL CONFIGURATION (IPv4 FORCED) ---
+// --- MANUAL GMAIL CONFIGURATION (Port 587 + IPv4) ---
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    host: "smtp.gmail.com",  // Manually specify host
+    port: 587,               // Use the Standard Submission Port
+    secure: false,           // Must be FALSE for Port 587 (it upgrades via STARTTLS)
     auth: {
-        user: process.env.EMAIL_USER, // Your Gmail address
-        pass: process.env.EMAIL_PASS, // Your 16-digit App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
-    // ⚠️ CRITICAL: This fixes the "Connection Timeout" on Render
-    family: 4, 
+    // NETWORK STABILITY SETTINGS
+    family: 4,               // Force IPv4 (Fixes Render timeouts)
+    connectionTimeout: 10000, // Fail after 10s (Don't hang forever)
+    greetingTimeout: 5000,    // Wait max 5s for server greeting
+    debug: true,              // Show us exactly what happens
+    logger: true              // Log the conversation
 });
 
-const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
+// Verify connection on startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("❌ Startup Connection Test Failed:", error);
+    } else {
+        console.log("✅ Ready to send emails (Connected to Gmail on Port 587)");
+    }
+});
 
 // Helper to format spots
 const createSpotsListHtml = (spotNames) => {
