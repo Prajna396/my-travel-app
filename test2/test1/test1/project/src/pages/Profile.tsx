@@ -4,11 +4,28 @@ import { User, Driver, Guide } from '../types';
 import axios from 'axios';
 
 const API_URL = 'https://my-travel-app-api.onrender.com/api/data/profile';
-// Inside Profile.tsx, before the export default function
+
+// FINAL CORRECTED fixUrl FUNCTION
 const fixUrl = (url: string) => {
     if (!url) return '';
-    // If the database URL still has localhost, fix it here:
-    return url.replace('http://localhost:5000', 'https://my-travel-app-api.onrender.com');
+
+    // Use the API Service domain, which hosts the /uploads/ folder
+    const API_DOMAIN = 'https://my-travel-app-api.onrender.com';
+
+    // Check for both localhost and the client domain, just in case
+    if (url.startsWith('http://localhost:5000')) {
+        return url.replace('http://localhost:5000', API_DOMAIN);
+    }
+    if (url.startsWith('https://my-travel-app-client.onrender.com')) {
+         return url.replace('https://my-travel-app-client.onrender.com', API_DOMAIN);
+    }
+
+    // If the URL is already just a relative path (e.g., /uploads/...), prepend the domain
+    if (url.startsWith('/')) {
+        return API_DOMAIN + url;
+    }
+
+    return url; 
 };
 
 interface ProfileProps {
