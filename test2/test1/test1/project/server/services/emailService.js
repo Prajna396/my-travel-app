@@ -1,25 +1,28 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
-// Ensure dotenv config is run here, though Render's ENV variables override it.
 dotenv.config(); 
 
-// --- CRITICAL FIX 1: Password Reset Link Domain ---
-// Use the live frontend domain for all links sent to the user.
-// NOTE: If you change your frontend name, you must update this here.
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
+// --- UPDATED TRANSPORTER CONFIGURATION ---
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // This should work for Gmail/Google Apps
+    host: 'smtp.gmail.com',
+    port: 587,              // Changed from 465 to 587
+    secure: false,          // Must be false for port 587
     auth: {
-        // These are read from the Render Environment Variables
-        user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS, // CRITICAL: Must be the App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
-    family:4,
+    // Force IPv4 to prevent connection issues
+    family: 4,
+    // Add this to prevent certificate errors on some cloud servers
+    tls: {
+        rejectUnauthorized: false
+    }
 });
+
+// Verify connection on startup
 transporter.verify((error, success) => {
     if (error) {
         console.error("❌ Email Service Error:", error);
@@ -27,10 +30,13 @@ transporter.verify((error, success) => {
         console.log("✅ Server is ready to take our messages");
     }
 });
+// -----------------------------------------
+
+// ... (Keep the rest of your functions: createSpotsListHtml, sendBookingConfirmation, etc. EXACTLY as they were)
+// Do not delete the rest of your file!
 
 // Helper function to format the spot names into an HTML list
 const createSpotsListHtml = (spotNames) => {
-    // ... (Your existing createSpotsListHtml function logic)
     if (!spotNames || spotNames.length === 0) {
         return ''; 
     }
@@ -45,9 +51,8 @@ const createSpotsListHtml = (spotNames) => {
     `;
 };
 
-// --- Customer Confirmation Email ---
 export const sendBookingConfirmation = async (user, bookingDetails) => {
-    // ... (Your existing booking confirmation logic)
+    // ... (Keep your existing logic here)
     const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
 
     const mailOptions = {
@@ -75,9 +80,8 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
     await transporter.sendMail(mailOptions);
 };
 
-// --- Driver Assignment Email ---
 export const sendDriverAssignment = async (driver, bookingDetails) => {
-    // ... (Your existing driver assignment logic)
+    // ... (Keep existing logic)
     const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
 
     const mailOptions = {
@@ -101,9 +105,8 @@ export const sendDriverAssignment = async (driver, bookingDetails) => {
     await transporter.sendMail(mailOptions);
 };
 
-// --- Guide Assignment Email ---
 export const sendGuideAssignment = async (guide, bookingDetails) => {
-    // ... (Your existing guide assignment logic)
+    // ... (Keep existing logic)
     const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
 
     const mailOptions = {
@@ -127,7 +130,6 @@ export const sendGuideAssignment = async (guide, bookingDetails) => {
     await transporter.sendMail(mailOptions);
 };
 
-// Send a registration success email
 export const sendRegistrationEmail = async (user) => {
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -140,15 +142,11 @@ export const sendRegistrationEmail = async (user) => {
             <p>Happy travels!</p>
         `,
     };
-
-    // Remove the try...catch here so the error bubbles up and the API handles it.
     await transporter.sendMail(mailOptions);
     console.log(`Registration email sent to ${user.email}`);
 };
 
-// --- NEW FUNCTION: Send Contact Message to Admin ---
 export const sendContactMessage = async (formData) => {
-    // ... (Your existing contact message logic)
     const mailOptions = {
         from: formData.email,
         to: process.env.EMAIL_USER, 
@@ -166,14 +164,11 @@ export const sendContactMessage = async (formData) => {
             </p>
         `,
     };
-
-    // Remove the try...catch here so the error bubbles up and the API handles it.
     await transporter.sendMail(mailOptions);
     console.log(`Contact message sent from ${formData.email}`);
 };
 
 export const sendPasswordResetLink = async (user, token) => {
-    // --- CRITICAL FIX 2: Use the live domain ---
     const resetUrl = `${FRONTEND_DOMAIN}/#/reset-password?token=${token}&email=${user.email}`;
 
     const mailOptions = {
