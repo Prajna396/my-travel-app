@@ -5,26 +5,12 @@ dotenv.config();
 
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
-console.log("--- DEBUGGING CREDENTIALS ---");
-console.log("Email User:", process.env.EMAIL_USER);
-// Only print the first 5 characters of the password to check if it's the new one
-const pass = process.env.EMAIL_PASS || "";
-console.log("Password Start:", pass.substring(0, 5)); 
-console.log("Password Length:", pass.length);
-console.log("-----------------------------");
-// --- BREVO CONFIGURATION (PORT 2525 FIX) ---
 const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 2525,             // <--- SWITCHED TO PORT 2525 (Crucial for Render)
-    secure: false,          // False for port 2525
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
-    },
-    family: 4,              // Force IPv4
-    connectionTimeout: 10000, // Fail fast (10s) if connection hangs
-    logger: true,           // Log details to console
-    debug: true             // Show SMTP traffic
+    },          // Show SMTP traffic
 });
 
 // Verify connection on startup
