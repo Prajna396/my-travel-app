@@ -5,23 +5,25 @@ import axios from 'axios';
 
 const API_URL = 'https://my-travel-app-api.onrender.com/api/data/profile';
 
-// FINAL CORRECTED fixUrl FUNCTION
+// FINAL CORRECTED fixUrl FUNCTION in Profile.tsx
 const fixUrl = (url: string) => {
     if (!url) return '';
-
-    // Use the API Service domain, which hosts the /uploads/ folder
+    
+    // This is the correct domain that serves the /uploads folder
     const API_DOMAIN = 'https://my-travel-app-api.onrender.com';
 
-    // Check for both localhost and the client domain, just in case
+    // Replace the old localhost reference with the correct API domain
     if (url.startsWith('http://localhost:5000')) {
         return url.replace('http://localhost:5000', API_DOMAIN);
     }
-    if (url.startsWith('https://my-travel-app-client.onrender.com')) {
+    
+    // Replace the incorrect client domain with the correct API domain (for the error you saw)
+    if (url.includes('my-travel-app-client.onrender.com')) {
          return url.replace('https://my-travel-app-client.onrender.com', API_DOMAIN);
     }
-
-    // If the URL is already just a relative path (e.g., /uploads/...), prepend the domain
-    if (url.startsWith('/')) {
+    
+    // If the path is relative (e.g., /uploads/...), prepend the API domain
+    if (url.startsWith('/uploads')) {
         return API_DOMAIN + url;
     }
 
