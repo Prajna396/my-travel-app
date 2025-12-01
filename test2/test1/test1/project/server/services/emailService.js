@@ -8,7 +8,7 @@ const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
 // Read env (prefer explicit SMTP_* names)
 const smtpHost = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
-const smtpPort = Number(process.env.SMTP_PORT || 587);
+const smtpPort = Number(process.env.SMTP_PORT || 2525);
 const smtpSecure = (process.env.SMTP_SECURE === 'true'); // false for 587
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
