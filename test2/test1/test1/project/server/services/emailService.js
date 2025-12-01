@@ -5,19 +5,19 @@ dotenv.config();
 
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
-// --- BREVO (SENDINBLUE) CONFIGURATION ---
+// --- BREVO CONFIGURATION (PORT 2525 FIX) ---
 const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com', // Brevo's SMTP server
-    port: 587,
-    secure: false, // False for port 587 (it uses STARTTLS)
+    host: 'smtp-relay.brevo.com',
+    port: 2525,             // <--- SWITCHED TO PORT 2525 (Crucial for Render)
+    secure: false,          // False for port 2525
     auth: {
-        user: process.env.EMAIL_USER, // Your Brevo Login Email
-        pass: process.env.EMAIL_PASS, // Your Brevo SMTP Key
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     },
-    // Reliability settings
-    family: 4, 
-    logger: true,
-    debug: true, 
+    family: 4,              // Force IPv4
+    connectionTimeout: 10000, // Fail fast (10s) if connection hangs
+    logger: true,           // Log details to console
+    debug: true             // Show SMTP traffic
 });
 
 // Verify connection on startup
@@ -25,7 +25,7 @@ transporter.verify((error, success) => {
     if (error) {
         console.error("❌ Email Service Error:", error);
     } else {
-        console.log("✅ Email Service is Ready (Connected to Brevo)");
+        console.log("✅ Email Service is Ready (Connected to Brevo on Port 2525)");
     }
 });
 
@@ -50,7 +50,7 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
     try {
         const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
         const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`, // Must match verified sender in Brevo
+            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`, 
             to: user.email,
             subject: 'Your Azure Journeys Trip is Confirmed!',
             html: `
@@ -145,8 +145,8 @@ export const sendRegistrationEmail = async (user) => {
 export const sendContactMessage = async (formData) => {
     try {
         const mailOptions = {
-            from: `"Contact Form" <${process.env.EMAIL_USER}>`, // Must come from your verified email
-            replyTo: formData.email, // Replies go to the customer
+            from: `"Contact Form" <${process.env.EMAIL_USER}>`,
+            replyTo: formData.email,
             to: process.env.EMAIL_USER,
             subject: `[Contact Form] ${formData.subject || 'General'}`,
             html: `
