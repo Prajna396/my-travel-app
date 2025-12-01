@@ -6,7 +6,8 @@ import bcrypt from 'bcryptjs'; // Make sure bcryptjs is imported
 
 const router = express.Router();
 
-// Register route (This should already be correct)
+// In server/routes/authRoutes.js
+
 router.post('/register', async (req, res) => {
     const { name, email, phone, password, role } = req.body;
     try {
@@ -16,11 +17,20 @@ router.post('/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         const newUser = new User({ name, email, phone, password: hashedPassword, role });
-        await newUser.save();
-        await sendRegistrationEmail(newUser);
+        
+        await newUser.save(); // Save the user FIRST
+
+        // Attempt to send email, but don't crash if it fails
+        try {
+            await sendRegistrationEmail(newUser);
+        } catch (emailError) {
+            console.error("Email failed, but user registered:", emailError.message);
+        }
+
         res.status(201).json(newUser);
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        console.error("Registration error:", error);
+        res.status(500).json({ message: 'Server error during registration' });
     }
 });
 
