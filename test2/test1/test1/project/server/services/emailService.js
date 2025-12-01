@@ -7,8 +7,8 @@ const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com", // Explicitly say Gmail
-    port: 587,              // This is the standard "Submission" port (safest for cloud)
-    secure: false,          // True is for port 465, false is for port 587
+    port: 465,              // This is the standard "Submission" port (safest for cloud)
+    secure: true,          // True is for port 465, false is for port 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
