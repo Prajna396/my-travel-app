@@ -13,6 +13,7 @@ const router = express.Router();
 const calculateTotalCost = (bookingDetails) => {
     const carCost = bookingDetails.selectedCar?.pricePerDay || 0;
     const guideCost = bookingDetails.selectedGuide?.pricePerDay || 0;
+    // Only add guide cost if a guide is selected
     return carCost + (bookingDetails.selectedGuide ? guideCost : 0);
 };
 
@@ -25,6 +26,8 @@ router.post('/bookings', async (req, res) => {
         const user = await User.findOne({ email: userEmail });
         if (!user) return res.status(404).json({ message: 'User not found.' });
 
+        const totalCost = calculateTotalCost(bookingDetails);
+
         const newBooking = new Booking({
             customerEmail: userEmail,
             driverEmail: bookingDetails.selectedCar.email,
@@ -34,7 +37,7 @@ router.post('/bookings', async (req, res) => {
             time: bookingDetails.time,
             passengers: bookingDetails.passengers,
             selectedSpots: bookingDetails.selectedSpots,
-            totalCost: calculateTotalCost(bookingDetails),
+            totalCost: totalCost,
             paymentMethod: bookingDetails.paymentMethod,
             driverPickupLocation: bookingDetails.driverPickupLocation,
             guidePickupLocation: bookingDetails.guidePickupLocation,
@@ -43,17 +46,28 @@ router.post('/bookings', async (req, res) => {
 
         const emailPayload = { ...bookingDetails, customerName, totalCost: newBooking.totalCost };
         
-        await sendBookingConfirmation(user, emailPayload);
-        if (emailPayload.selectedCar) {
-            const driver = await User.findOne({ email: emailPayload.selectedCar.email });
-            if (driver) await sendDriverAssignment(driver, emailPayload);
+        // --- CRITICAL FIX 3: Catch email errors that cause server crash ---
+        try {
+            await sendBookingConfirmation(user, emailPayload);
+            if (emailPayload.selectedCar) {
+                const driver = await User.findOne({ email: emailPayload.selectedCar.email });
+                if (driver) await sendDriverAssignment(driver, emailPayload);
+            }
+            if (emailPayload.selectedGuide) {
+                const guide = await User.findOne({ email: emailPayload.selectedGuide.email });
+                if (guide) await sendGuideAssignment(guide, emailPayload);
+            }
+            res.status(201).json({ message: 'Booking confirmed! Emails sent.' });
+
+        } catch (emailError) {
+            console.error('SERVER CRASH IMMINENT: Email service failed.', emailError);
+            // If the server crashes here, the booking is still saved, but we send a user-friendly error.
+            // This prevents a generic 500 error from the server crashing.
+            res.status(201).json({ message: 'Booking confirmed, but failed to send confirmation email. Please check your trips.' });
         }
-        if (emailPayload.selectedGuide) {
-            const guide = await User.findOne({ email: emailPayload.selectedGuide.email });
-            if (guide) await sendGuideAssignment(guide, emailPayload);
-        }
-        res.status(201).json({ message: 'Booking confirmed! Emails sent.' });
+
     } catch (error) {
+        console.error('SERVER ERROR DURING BOOKING:', error);
         res.status(500).json({ message: 'Server error during booking.' });
     }
 });
@@ -68,7 +82,8 @@ router.get('/bookings/:userEmail', async (req, res) => {
         else if (role === 'guide') findQuery.guideEmail = userEmail;
         else return res.status(400).json({ message: 'Invalid role.' });
 
-        const bookings = await Booking.find(findQuery).sort({ date: -1 }).lean();
+        // Removed sort, as requested in previous instructions (but sorting data on date field is usually efficient)
+        const bookings = await Booking.find(findQuery).lean(); 
         const bookingsWithSpotNames = await Promise.all(
             bookings.map(async (booking) => {
                 const spots = await TouristSpot.find({ id: { $in: booking.selectedSpots } });
@@ -83,6 +98,7 @@ router.get('/bookings/:userEmail', async (req, res) => {
 });
 
 router.put('/bookings/cancel/:id', async (req, res) => {
+    // ... (Your existing cancel logic)
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) {
@@ -100,6 +116,7 @@ router.put('/bookings/cancel/:id', async (req, res) => {
 });
 
 router.put('/bookings/complete/:id', async (req, res) => {
+    // ... (Your existing complete logic)
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) return res.status(404).json({ message: 'Booking not found.' });
