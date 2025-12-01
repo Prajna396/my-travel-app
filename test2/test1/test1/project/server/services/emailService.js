@@ -5,17 +5,12 @@ dotenv.config();
 
 // --- MANUAL GMAIL CONFIGURATION (Port 587 + IPv4) ---
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",  // Manually specify host
-    port: 587,               // Use the Standard Submission Port
-    secure: false,           // Must be FALSE for Port 587 (it upgrades via STARTTLS)
+    service: 'gmail',           // Must be FALSE for Port 587 (it upgrades via STARTTLS)
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
-    // NETWORK STABILITY SETTINGS
-    family: 4,               // Force IPv4 (Fixes Render timeouts)
-    connectionTimeout: 10000, // Fail after 10s (Don't hang forever)
-    greetingTimeout: 5000,    // Wait max 5s for server greeting
+    // Wait max 5s for server greeting
     debug: true,              // Show us exactly what happens
     logger: true              // Log the conversation
 });
