@@ -6,7 +6,9 @@ dotenv.config();
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Use the built-in Gmail service preset
+    host: 'smtp.gmail.com', // Explicitly use Google
+    port: 587,              // The standard "Submission" port (Most reliable)
+    secure: false,          // False for port 587 (It upgrades to secure automa
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
