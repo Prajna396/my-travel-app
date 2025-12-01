@@ -13,15 +13,6 @@ const transporter = nodemailer.createTransport({
     },          // Show SMTP traffic
 });
 
-// Verify connection on startup
-transporter.verify((error, success) => {
-    if (error) {
-        console.error("❌ Email Service Error:", error);
-    } else {
-        console.log("✅ Email Service is Ready (Connected to Brevo on Port 2525)");
-    }
-});
-
 // Helper function to format tourist spots
 const createSpotsListHtml = (spotNames) => {
     if (!spotNames || spotNames.length === 0) return '';
