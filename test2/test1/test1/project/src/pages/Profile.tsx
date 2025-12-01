@@ -4,7 +4,12 @@ import { User, Driver, Guide } from '../types';
 import axios from 'axios';
 
 const API_URL = 'https://my-travel-app-api.onrender.com/api/data/profile';
-const BACKEND_BASE_URL = 'https://my-travel-app-api.onrender.com';
+// Inside Profile.tsx, before the export default function
+const fixUrl = (url: string) => {
+    if (!url) return '';
+    // If the database URL still has localhost, fix it here:
+    return url.replace('http://localhost:5000', 'https://my-travel-app-api.onrender.com');
+};
 
 interface ProfileProps {
     user: User;
@@ -130,7 +135,7 @@ export default function Profile({ user, onLogout, onNavigate, onUserUpdate }: Pr
                                         <div><label className="text-sm font-medium">Price per Day (₹)</label>{isEditing ? <input name="pricePerDay" type="number" value={editData.pricePerDay || ''} onChange={handleInputChange} className="w-full p-2 border rounded-md mt-1"/> : <p className="p-2">{driver.pricePerDay || 'N/A'}</p>}</div>
                                         <div><label className="text-sm font-medium">Driving License Card</label>
                                             {isEditing ? <input type="file" name="drivingLicense" onChange={handleFileChange} className="w-full text-sm mt-1 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700"/> : 
-                                            <div className="p-2 flex justify-between items-center">{driver.drivingLicenseUrl ? <a href={`${BACKEND_BASE_URL}${driver.drivingLicenseUrl}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold">View License</a> : 'Not uploaded'}</div>}
+                                            <div className="p-2 flex justify-between items-center">{driver.drivingLicenseUrl ? <a href={fixUrl(driver.drivingLicenseUrl)} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold">View License</a> : 'Not uploaded'}</div>}
                                         </div>
                                     </div>
                                 </>}
@@ -141,7 +146,7 @@ export default function Profile({ user, onLogout, onNavigate, onUserUpdate }: Pr
                                         <div><label className="text-sm font-medium">Languages</label>{isEditing ? <input name="languages" value={Array.isArray(editData.languages) ? editData.languages.join(', ') : (editData.languages || '')} onChange={handleInputChange} className="w-full p-2 border rounded-md mt-1"/> : <p className="p-2">{guide.languages?.join(', ') || 'N/A'}</p>}</div>
                                         <div><label className="text-sm font-medium">Identity Card</label>
                                             {isEditing ? <input type="file" name="guideIdCard" onChange={handleFileChange} className="w-full text-sm mt-1 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700"/> : 
-                                            <div className="p-2 flex justify-between items-center">{guide.guideIdCardUrl ? <a href={`${BACKEND_BASE_URL}${guide.guideIdCardUrl}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold">View ID Card</a> : 'Not uploaded'}</div>}
+                                            <div className="p-2 flex justify-between items-center">{guide.guideIdCardUrl ? <a href={fixUrl(guide.guideIdCardUrl)} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-semibold">View ID Card</a> : 'Not uploaded'}</div>}
                                         </div>
                                     </div>
                                 </>}

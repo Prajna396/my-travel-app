@@ -12,7 +12,7 @@ interface NavigationProps {
 export default function Navigation({ user, currentPage, onNavigate, onLogout }: NavigationProps) {
   const getNavigationItems = () => {
     if (!user) {
-      return [
+      return [ 
         { id: 'home', label: 'Home', icon: null },
         { id: 'about', label: 'About Us', icon: null },
         { id: 'contact', label: 'Contact Us', icon: null },
