@@ -3,12 +3,19 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Initialize Resend with your API Key
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL
+    auth: {
+        user: process.env.EMAIL_USER, // Your Gmail address
+        pass: process.env.EMAIL_PASS, // Your 16-digit App Password
+    },
+    // ⚠️ THIS IS THE MAGIC FIX FOR RENDER TIMEOUTS ⚠️
+    family: 4, 
+});
 
-// Use a verified sender email or the Resend testing email
-// IMPORTANT: Until you verify your own domain, you MUST use 'onboarding@resend.dev'
-const SENDER_EMAIL = 'onboarding@resend.dev'; 
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
 // Helper to format spots list
