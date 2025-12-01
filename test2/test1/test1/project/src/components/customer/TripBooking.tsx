@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, MapPin, ArrowRight, Star, Phone, History, CreditCard } from 'lucide-react';
 import { BookingFormData, Driver, Guide, TouristSpot } from '../../types';
+import emailjs from '@emailjs/browser';
 
 const API_URL = 'https://my-travel-app-api.onrender.com/api';
 
@@ -86,30 +87,48 @@ export default function TripBooking({ userEmail, onClose, onBookingComplete, onS
     const handleBack = () => setStep(step - 1);
 
     const handleComplete = async () => {
-        try {
-            // *** MODIFIED: Add selectedSpotNames to the payload sent to the backend ***
-            const response = await fetch(`${API_URL}/bookings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    userEmail, 
-                    customerName, 
-                    bookingDetails: { ...formData, selectedSpotNames } 
-                }),
-            });
+    try {
+        // 1. Save Booking to Database (Backend)
+        const response = await fetch(`${API_URL}/bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                userEmail, 
+                customerName, 
+                bookingDetails: { ...formData, selectedSpotNames } 
+            }),
+        });
+
+        // 2. Send Email from Browser (EmailJS) - THIS BYPASSES THE SERVER BLOCK
+        if (response.ok) {
+            const templateParams = {
+                to_name: customerName,
+                to_email: userEmail,      // Sends to the customer
+                from_loc: formData.from,
+                to_loc: formData.to,
+                total_cost: totalCost,
+            };
+
+            // REPLACE THESE WITH YOUR COPIED IDs
+            await emailjs.send(
+                'service_xjlf8bt',   // Paste Service ID
+                'template_1h2ke18',  // Paste Template ID
+                templateParams,
+                '7dLgngNWYq9fYQrfo'    // Paste Public Key
+            );
+
+            onBookingComplete(formData);
+            onClose();
+            onShowMessage('Booking confirmed and Email Sent!', 'success');
+        } else {
             const data = await response.json();
-            if (response.ok) {
-                onBookingComplete(formData);
-                onClose();
-                onShowMessage(data.message, 'success');
-            } else {
-                onShowMessage(data.message || 'Booking failed.', 'error');
-            }
-        } catch (error) {
-            console.error('Network error while booking:', error);
-            onShowMessage('Network error. Please try again.', 'error');
+            onShowMessage(data.message || 'Booking failed.', 'error');
         }
-    };
+    } catch (error) {
+        console.error('Error:', error);
+        onShowMessage('Booking saved, but email failed.', 'error');
+    }
+};
     
     const toggleSpot = (spotId: string) => {
         setFormData(prev => ({
