@@ -1,24 +1,17 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Initialize Resend with your API Key
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Use a verified sender email or the Resend testing email
+// IMPORTANT: Until you verify your own domain, you MUST use 'onboarding@resend.dev'
+const SENDER_EMAIL = 'onboarding@resend.dev'; 
 const FRONTEND_DOMAIN = 'https://my-travel-app-client.onrender.com';
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Explicitly use Google
-    port: 465,              // The standard "Submission" port (Most reliable)
-    secure: true,          // False for port 587 (It upgrades to secure automa
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    }, 
-    family: 4,           // <--- THIS IS THE FIX: Forces IPv4
-    logger: true,        // Log the communication for debugging
-    debug: true,         // Include SMTP traffic in logs         // Show SMTP traffic
-});
-
-// Helper function to format tourist spots
+// Helper to format spots list
 const createSpotsListHtml = (spotNames) => {
     if (!spotNames || spotNames.length === 0) return '';
     const listItems = spotNames.map(name => `<li>${name}</li>`).join('');
@@ -38,8 +31,8 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
     console.log(`Sending booking email to ${user.email}...`);
     try {
         const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
-        const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`, 
+        const data = await resend.emails.send({
+            from: SENDER_EMAIL,
             to: user.email,
             subject: 'Your Azure Journeys Trip is Confirmed!',
             html: `
@@ -51,20 +44,19 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
                     <li><strong>Total Cost:</strong> ₹${bookingDetails.totalCost}</li>
                     ${spotListHtml}
                 </ul>
-            `,
-        };
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Booking email sent to ${user.email}`);
+            `
+        });
+        console.log(`✅ Booking email sent:`, data);
     } catch (error) {
-        console.error(`❌ Failed to send booking email:`, error.message);
+        console.error(`❌ Failed to send booking email:`, error);
     }
 };
 
 export const sendDriverAssignment = async (driver, bookingDetails) => {
     try {
         const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
-        const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`,
+        await resend.emails.send({
+            from: SENDER_EMAIL,
             to: driver.email,
             subject: 'New Trip Assigned to You!',
             html: `
@@ -77,20 +69,19 @@ export const sendDriverAssignment = async (driver, bookingDetails) => {
                     <li><strong>Date:</strong> ${bookingDetails.date} at ${bookingDetails.time}</li>
                     ${spotListHtml}
                 </ul>
-            `,
-        };
-        await transporter.sendMail(mailOptions);
+            `
+        });
         console.log(`✅ Driver email sent`);
     } catch (error) {
-        console.error("❌ Failed to send driver email:", error.message);
+        console.error("❌ Failed to send driver email:", error);
     }
 };
 
 export const sendGuideAssignment = async (guide, bookingDetails) => {
     try {
         const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
-        const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`,
+        await resend.emails.send({
+            from: SENDER_EMAIL,
             to: guide.email,
             subject: 'New Guide Assignment!',
             html: `
@@ -102,50 +93,52 @@ export const sendGuideAssignment = async (guide, bookingDetails) => {
                     <li><strong>Date:</strong> ${bookingDetails.date} at ${bookingDetails.time}</li>
                     ${spotListHtml}
                 </ul>
-            `,
-        };
-        await transporter.sendMail(mailOptions);
+            `
+        });
         console.log(`✅ Guide email sent`);
     } catch (error) {
-        console.error("❌ Failed to send guide email:", error.message);
+        console.error("❌ Failed to send guide email:", error);
     }
 };
 
 export const sendRegistrationEmail = async (user) => {
     console.log(`Sending registration email to ${user.email}...`);
     try {
-        const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`,
+        await resend.emails.send({
+            from: SENDER_EMAIL,
             to: user.email,
             subject: 'Welcome to Azure Journeys!',
             html: `
                 <h1>Hello, ${user.name}!</h1>
                 <p>Thank you for registering with Azure Journeys as a ${user.role}.</p>
                 <p>We're excited to have you on board.</p>
-            `,
-        };
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Registration email sent to ${user.email}`);
+            `
+        });
+        console.log(`✅ Registration email sent successfully`);
     } catch (error) {
-        console.error(`❌ Failed to send registration email:`, error.message);
+        console.error(`❌ Failed to send registration email:`, error);
     }
 };
 
 export const sendContactMessage = async (formData) => {
     try {
-        const mailOptions = {
-            from: `"Contact Form" <${process.env.EMAIL_USER}>`,
-            replyTo: formData.email,
-            to: process.env.EMAIL_USER,
+        // Note: For contact forms, we send TO ourselves (the admin)
+        // You can set this to your personal email or use an environment variable
+        const adminEmail = 'prajnasree396@gmail.com'; 
+        
+        await resend.emails.send({
+            from: SENDER_EMAIL,
+            to: adminEmail, 
+            reply_to: formData.email,
             subject: `[Contact Form] ${formData.subject || 'General'}`,
             html: `
                 <h3>From: ${formData.name} (${formData.email})</h3>
                 <p>${formData.message}</p>
-            `,
-        };
-        await transporter.sendMail(mailOptions);
+            `
+        });
+        console.log(`✅ Contact message forwarded`);
     } catch (error) {
-        console.error("❌ Contact form email failed:", error.message);
+        console.error("❌ Contact form email failed:", error);
         throw error;
     }
 };
@@ -153,18 +146,17 @@ export const sendContactMessage = async (formData) => {
 export const sendPasswordResetLink = async (user, token) => {
     try {
         const resetUrl = `${FRONTEND_DOMAIN}/#/reset-password?token=${token}&email=${user.email}`;
-        const mailOptions = {
-            from: `"Azure Journeys" <${process.env.EMAIL_USER}>`,
+        await resend.emails.send({
+            from: SENDER_EMAIL,
             to: user.email,
             subject: 'Password Reset Request',
             html: `
                 <p>You requested a password reset.</p>
                 <a href="${resetUrl}">Reset Password</a>
-            `,
-        };
-        await transporter.sendMail(mailOptions);
+            `
+        });
         console.log(`✅ Password reset link sent`);
     } catch (error) {
-        console.error(`❌ Failed to send reset link:`, error.message);
+        console.error(`❌ Failed to send reset link:`, error);
     }
 };
