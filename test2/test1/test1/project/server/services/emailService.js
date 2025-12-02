@@ -99,10 +99,10 @@ const createSpotsListHtml = (spotNames) => {
   `;
 };
 
-// --- EMAIL FUNCTIONS ---
 export const sendBookingConfirmation = async (user, bookingDetails) => {
   console.log(`Sending booking email to ${user.email}...`);
   const spotListHtml = createSpotsListHtml(bookingDetails.selectedSpotNames);
+  
   const mailOptions = {
     from: emailFrom,
     to: user.email,
@@ -116,9 +116,11 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
         <li><strong>Total Cost:</strong> ₹${bookingDetails.totalCost}</li>
         
         <li><strong>Driver:</strong> ${bookingDetails.driverName}</li>
-        <li><strong>Guide:</strong> ${bookingDetails.guideName || 'Not Assigned'}</li>
+        <li><strong>Vehicle No:</strong> ${bookingDetails.vehicleNo || 'Not Updated'}</li> 
+        <li><strong>Guide:</strong> ${bookingDetails.guideName || 'Not Selected'}</li>
         ${spotListHtml}
       </ul>
+      <p>Thank you for choosing Azure Journeys!</p>
     `
   };
 
