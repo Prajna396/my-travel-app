@@ -114,7 +114,9 @@ export const sendBookingConfirmation = async (user, bookingDetails) => {
         <li><strong>Route:</strong> ${bookingDetails.from} to ${bookingDetails.to}</li>
         <li><strong>Date:</strong> ${bookingDetails.date} at ${bookingDetails.time}</li>
         <li><strong>Total Cost:</strong> ₹${bookingDetails.totalCost}</li>
+        
         <li><strong>Driver:</strong> ${bookingDetails.driverName}</li>
+        <li><strong>Guide:</strong> ${bookingDetails.guideName || 'Not Assigned'}</li>
         ${spotListHtml}
       </ul>
     `

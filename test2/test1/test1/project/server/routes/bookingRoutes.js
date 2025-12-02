@@ -19,15 +19,18 @@ const calculateTotalCost = (bookingDetails) => {
 
 router.post('/bookings', async (req, res) => {
     const { userEmail, customerName, bookingDetails } = req.body;
+
     if (!userEmail || !bookingDetails.selectedCar) {
         return res.status(400).json({ message: 'Missing essential booking data.' });
     }
+
     try {
         const user = await User.findOne({ email: userEmail });
         if (!user) return res.status(404).json({ message: 'User not found.' });
 
         const totalCost = calculateTotalCost(bookingDetails);
 
+        // 1. Create the booking in Database
         const newBooking = new Booking({
             customerEmail: userEmail,
             driverEmail: bookingDetails.selectedCar.email,
@@ -44,26 +47,51 @@ router.post('/bookings', async (req, res) => {
         });
         await newBooking.save();
 
-        const emailPayload = { ...bookingDetails, customerName, totalCost: newBooking.totalCost };
+        // ---------------------------------------------------------
+        // 2. FETCH DETAILS *BEFORE* SENDING EMAILS
+        // ---------------------------------------------------------
         
-        // --- CRITICAL FIX 3: Catch email errors that cause server crash ---
+        // Fetch Driver Details (Name, Vehicle No)
+        const driverUser = await User.findOne({ email: bookingDetails.selectedCar.email });
+        
+        // Fetch Guide Details (Name)
+        const guideUser = bookingDetails.selectedGuide?.email 
+            ? await User.findOne({ email: bookingDetails.selectedGuide.email }) 
+            : null;
+
+        // 3. Construct the Email Payload with ACTUAL NAMES and VEHICLE NO
+        const emailPayload = { 
+            ...bookingDetails, 
+            customerName, 
+            totalCost: newBooking.totalCost,
+            // Add the fetched details here:
+            driverName: driverUser ? driverUser.name : 'Assigning Driver...',
+            vehicleNo: driverUser ? (driverUser.vehicleNo || 'Not Updated') : 'N/A', 
+            guideName: guideUser ? guideUser.name : 'Not Added'
+        };
+        
+        // ---------------------------------------------------------
+
+        // 4. Send Emails safely
         try {
-            await sendBookingConfirmation(user, emailPayload);
-            if (emailPayload.selectedCar) {
-                const driver = await User.findOne({ email: emailPayload.selectedCar.email });
-                if (driver) await sendDriverAssignment(driver, emailPayload);
+            // Send to Customer (Now includes driverName, vehicleNo, guideName)
+            await sendBookingConfirmation(user, emailPayload); 
+
+            // Send to Driver
+            if (driverUser) {
+                await sendDriverAssignment(driverUser, emailPayload);
             }
-            if (emailPayload.selectedGuide) {
-                const guide = await User.findOne({ email: emailPayload.selectedGuide.email });
-                if (guide) await sendGuideAssignment(guide, emailPayload);
+
+            // Send to Guide
+            if (guideUser) {
+                await sendGuideAssignment(guideUser, emailPayload);
             }
+
             res.status(201).json({ message: 'Booking confirmed! Emails sent.' });
 
         } catch (emailError) {
-            console.error('SERVER CRASH IMMINENT: Email service failed.', emailError);
-            // If the server crashes here, the booking is still saved, but we send a user-friendly error.
-            // This prevents a generic 500 error from the server crashing.
-            res.status(201).json({ message: 'Booking confirmed, but failed to send confirmation email. Please check your trips.' });
+            console.error('SERVER CRASH PREVENTED: Email service failed.', emailError);
+            res.status(201).json({ message: 'Booking confirmed, but email system is busy. Check "My Trips".' });
         }
 
     } catch (error) {
