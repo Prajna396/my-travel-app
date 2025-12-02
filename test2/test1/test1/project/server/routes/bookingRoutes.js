@@ -66,7 +66,7 @@ router.post('/bookings', async (req, res) => {
             totalCost: newBooking.totalCost,
             // Add the fetched details here:
             driverName: driverUser ? driverUser.name : 'Assigning Driver...',
-            vehicleNo: driverUser ? (driverUser.vehicleNo || 'Not Updated') : 'N/A', 
+            vehicleNo: driverUser ? (driverUser.carNumber || 'Not Updated') : 'N/A', 
             guideName: guideUser ? guideUser.name : 'Not Added'
         };
         
